@@ -3,19 +3,27 @@ package data
 import (
 	"encoding/json"
 	"io"
+
+	"github.com/go-playground/validator"
 )
 
 // Product structure
 type Product struct {
-	ID          int
-	Brand       string
-	Title       string
-	Description string
-	Price       float64
+	ID          int     `json:"id"`
+	Brand       string  `json:"brand" validate:"required"`
+	Title       string  `json:"title" validate:"required"`
+	Description string  `json:"desc" validate:"required"`
+	Price       float64 `json:"price" validate:"required"`
 }
 
 //Products type used in Get Products
 type Products []*Product
+
+//Validate product
+func (p *Product) Validate() error {
+	validate := validator.New()
+	return validate.Struct(p)
+}
 
 // GetProducts returns all products from the database
 func GetProducts() Products {
