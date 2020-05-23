@@ -12,6 +12,7 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 	err := products.ToJSON(w)
 	if err != nil {
 		http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
+		return
 	}
 	// fmt.Fprint(w, string(err))
 }
@@ -24,6 +25,7 @@ func AddProduct(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Unable to unmarshal json", http.StatusBadRequest)
+		return
 	}
 	data.AddProduct(prod)
 	prod.ToJSON(w)
