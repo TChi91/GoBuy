@@ -13,6 +13,7 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Get("/", handlers.GetProducts)
 	r.Post("/", handlers.AddProduct)
+	r.Put("/{id}", handlers.UpdateProduct)
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: r,

@@ -2,10 +2,14 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/go-playground/validator"
 )
+
+//ErrNotFound => product not found
+var ErrNotFound = fmt.Errorf("Product not found")
 
 // Product structure
 type Product struct {
@@ -43,6 +47,23 @@ func (p *Products) ToJSON(w io.Writer) error {
 	return err
 }
 
+//UpdateProduct func
+func UpdateProduct(id int, p *Product) error {
+	_, pos, _ := findProduct(id)
+	p.ID = id
+	productList[pos] = p
+	return nil
+}
+
+func findProduct(id int) (*Product, int, error) {
+	for i, p := range productList {
+		if p.ID == id {
+			return p, i, nil
+		}
+	}
+	return nil, -1, ErrNotFound
+}
+
 //ToJSON for marshaling product
 func (p *Product) ToJSON(w io.Writer) error {
 	enc := json.NewEncoder(w)
@@ -63,15 +84,15 @@ func getNextID() int {
 	return nextID
 }
 
-var productList = Products{
-	&Product{
+var productList = []*Product{
+	{
 		ID:          1,
 		Brand:       "Fujitsu",
 		Title:       "Fujitsu Laptop",
 		Description: "The best laptop ever",
 		Price:       999.00,
 	},
-	&Product{
+	{
 		ID:          2,
 		Brand:       "Canon",
 		Title:       "Canon Printer",
