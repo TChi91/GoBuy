@@ -1,5 +1,10 @@
 package data
 
+import (
+	"encoding/json"
+	"io"
+)
+
 // Product structure
 type Product struct {
 	ID          int
@@ -21,6 +26,27 @@ func GetProducts() Products {
 func AddProduct(p *Product) {
 	p.ID = getNextID()
 	productList = append(productList, p)
+}
+
+//ToJSON for marshaling productsList
+func (p *Products) ToJSON(w io.Writer) error {
+	enc := json.NewEncoder(w)
+	err := enc.Encode(p)
+	return err
+}
+
+//ToJSON for marshaling product
+func (p *Product) ToJSON(w io.Writer) error {
+	enc := json.NewEncoder(w)
+	err := enc.Encode(p)
+	return err
+}
+
+//FromJSON for marshaling product
+func (p *Product) FromJSON(r io.Reader) error {
+	dec := json.NewDecoder(r)
+	err := dec.Decode(p)
+	return err
 }
 
 func getNextID() int {
