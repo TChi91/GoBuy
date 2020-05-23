@@ -4,15 +4,18 @@ import (
 	"net/http"
 
 	"github.com/TChi91/GoBuy/handlers"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", handlers.GetProducts)
-	mux.HandleFunc("/new", handlers.AddProduct)
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Get("/", handlers.GetProducts)
+	r.Post("/", handlers.AddProduct)
 	server := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: r,
 	}
 	server.ListenAndServe()
 }
