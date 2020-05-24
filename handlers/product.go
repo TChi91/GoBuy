@@ -49,6 +49,18 @@ func AddProduct(w http.ResponseWriter, r *http.Request) {
 	prod.ToJSON(w)
 }
 
+//GetProduct to retrieve a single product
+func GetProduct(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	prod, err := data.GetProduct(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	prod.ToJSON(w)
+}
+
 //UpdateProduct handler
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
@@ -73,4 +85,19 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	data.UpdateProduct(id, prod)
 	prod.ToJSON(w)
 
+}
+
+//DeleteProduct handler
+func DeleteProduct(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	products, err := data.DeleteProduct(id)
+	if err != nil {
+		http.Error(
+			w,
+			fmt.Sprintf("%s", err),
+			http.StatusBadRequest,
+		)
+		return
+	}
+	_ = products.ToJSON(w)
 }

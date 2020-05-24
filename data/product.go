@@ -41,10 +41,19 @@ func AddProduct(p *Product) {
 }
 
 //ToJSON for marshaling productsList
-func (p *Products) ToJSON(w io.Writer) error {
+func (p Products) ToJSON(w io.Writer) error {
 	enc := json.NewEncoder(w)
 	err := enc.Encode(p)
 	return err
+}
+
+//GetProduct func
+func GetProduct(id int) (*Product, error) {
+	prod, _, err := findProduct(id)
+	if err != nil {
+		return nil, ErrNotFound
+	}
+	return prod, nil
 }
 
 //UpdateProduct func
@@ -62,6 +71,33 @@ func findProduct(id int) (*Product, int, error) {
 		}
 	}
 	return nil, -1, ErrNotFound
+}
+
+/*
+// func findProduct(id int) (*Product, int, error) {
+// 	for i := 1; i <= len(productList); i++ {
+// 		fmt.Println(i, id, productList[i].ID)
+// 		if productList[i-1].ID == id {
+// 			return productList[i], i, nil
+// 		}
+// 	}
+// 	return nil, -1, ErrNotFound
+// }
+*/
+
+//DeleteProduct func
+func DeleteProduct(id int) (Products, error) {
+	_, pos, _ := findProduct(id)
+	if pos == -1 {
+		return nil, ErrNotFound
+	}
+	productList = append(productList[:pos], productList[pos+1:]...)
+	for _, p := range productList {
+		out := fmt.Sprintf("ID %v\n", p.ID)
+		fmt.Println(out)
+	}
+	fmt.Println(len(productList))
+	return productList, nil
 }
 
 //ToJSON for marshaling product
