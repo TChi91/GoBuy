@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/TChi91/GoBuy/db"
 	"github.com/go-playground/validator"
+	// "github.com/jinzhu/gorm"
 )
 
 //ErrNotFound => product not found
@@ -13,6 +15,7 @@ var ErrNotFound = fmt.Errorf("Product not found")
 
 // Product structure
 type Product struct {
+	// gorm.Model
 	ID          int     `json:"id"`
 	Brand       string  `json:"brand" validate:"required"`
 	Title       string  `json:"title" validate:"required"`
@@ -30,14 +33,15 @@ func (p *Product) Validate() error {
 }
 
 // GetProducts returns all products from the database
-func GetProducts() Products {
-	return productList
+func GetProducts(p *Products) error {
+	err := db.Db.Find(p).Error
+	return err
 }
 
 //AddProduct append new product to productsList
-func AddProduct(p *Product) {
-	p.ID = getNextID()
-	productList = append(productList, p)
+func AddProduct(p *Product) error {
+	err := db.Db.Create(p).Error
+	return err
 }
 
 //ToJSON for marshaling productsList
@@ -48,19 +52,24 @@ func (p Products) ToJSON(w io.Writer) error {
 }
 
 //GetProduct func
-func GetProduct(id int) (*Product, error) {
-	prod, _, err := findProduct(id)
+func GetProduct(id int, p *Product) error {
+	err := db.Db.First(p, "id = ?", id).Error
 	if err != nil {
-		return nil, ErrNotFound
+		return ErrNotFound
 	}
-	return prod, nil
+	return nil
 }
 
 //UpdateProduct func
-func UpdateProduct(id int, p *Product) error {
-	_, pos, _ := findProduct(id)
-	p.ID = id
-	productList[pos] = p
+func UpdateProduct(p *Product) error {
+	err := db.Db.Save(p).Error
+	if err != nil {
+		return err
+	}
+	// err = db.Db.Updates(p).Error
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -86,18 +95,13 @@ func findProduct(id int) (*Product, int, error) {
 */
 
 //DeleteProduct func
-func DeleteProduct(id int) (Products, error) {
-	_, pos, _ := findProduct(id)
-	if pos == -1 {
-		return nil, ErrNotFound
+func DeleteProduct(p *Product) error {
+	err := db.Db.Delete(p).Error
+	if err != nil {
+		return err
 	}
-	productList = append(productList[:pos], productList[pos+1:]...)
-	for _, p := range productList {
-		out := fmt.Sprintf("ID %v\n", p.ID)
-		fmt.Println(out)
-	}
-	fmt.Println(len(productList))
-	return productList, nil
+
+	return nil
 }
 
 //ToJSON for marshaling product

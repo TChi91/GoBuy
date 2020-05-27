@@ -6,24 +6,23 @@ import (
 	"strconv"
 
 	"github.com/TChi91/GoBuy/data"
-	"github.com/TChi91/GoBuy/db"
 	"github.com/go-chi/chi"
 )
 
 //GetProducts return productsList
 func GetProducts(w http.ResponseWriter, r *http.Request) {
 	products := &data.Products{}
-	if err := db.Db.Find(&products).Error; err != nil {
+	err := data.GetProducts(products)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err := products.ToJSON(w)
+	err = products.ToJSON(w)
 	if err != nil {
 		http.Error(w, "Unable to marshal json", http.StatusInternalServerError)
 		return
 	}
-	// fmt.Fprint(w, string(err))
 }
 
 // AddProduct ti add new product to productsList
@@ -51,7 +50,8 @@ func AddProduct(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	if err := db.Db.Create(p).Error; err != nil {
+	err = data.AddProduct(p)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -62,8 +62,8 @@ func AddProduct(w http.ResponseWriter, r *http.Request) {
 func GetProduct(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	p := &data.Product{}
-
-	if err := db.Db.First(&p, "id = ?", id).Error; err != nil {
+	err := data.GetProduct(id, p)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -75,11 +75,12 @@ func GetProduct(w http.ResponseWriter, r *http.Request) {
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	prod := &data.Product{}
-	if err := db.Db.First(&prod, "id = ?", id).Error; err != nil {
+	err := data.GetProduct(id, prod)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err := prod.FromJSON(r.Body)
+	err = prod.FromJSON(r.Body)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -97,8 +98,16 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// data.UpdateProduct(id, prod)
-	db.Db.Save(prod)
-	db.Db.Updates(prod)
+
+	err = data.UpdateProduct(prod)
+	if err != nil {
+		http.Error(
+			w,
+			fmt.Sprintf("Error when trying to update: %s", err),
+			http.StatusBadRequest,
+		)
+		return
+	}
 	prod.ToJSON(w)
 
 }
@@ -107,7 +116,8 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	prod := &data.Product{}
-	if err := db.Db.First(&prod, "id = ?", id).Error; err != nil {
+
+	if err := data.GetProduct(id, prod); err != nil {
 		http.Error(
 			w,
 			fmt.Sprintf("%s", err),
@@ -115,7 +125,14 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	db.Db.Delete(prod)
 
+	if err := data.DeleteProduct(prod); err != nil {
+		http.Error(
+			w,
+			fmt.Sprintf("%s", err),
+			http.StatusBadRequest,
+		)
+		return
+	}
 	_ = prod.ToJSON(w)
 }
