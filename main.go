@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/TChi91/GoBuy/data"
 	"github.com/TChi91/GoBuy/db"
 	"github.com/TChi91/GoBuy/handlers"
 	"github.com/go-chi/chi"
@@ -16,7 +17,8 @@ func main() {
 		panic(err)
 	}
 	defer db.Close()
-	// db.AutoMigrate(&data.Product{})
+	db.Db.AutoMigrate(&data.Product{})
+	db.Db.AutoMigrate(&data.User{})
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -25,6 +27,9 @@ func main() {
 	r.Get("/{id}", handlers.GetProduct)
 	r.Put("/{id}", handlers.UpdateProduct)
 	r.Delete("/{id}", handlers.DeleteProduct)
+
+	r.Post("/register", handlers.AddUser)
+
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: r,
