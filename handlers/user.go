@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/TChi91/GoBuy/data"
@@ -21,17 +22,22 @@ func AddUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// validate the product
-	// err = p.Validate()
-	// if err != nil {
-	// 	http.Error(
-	// 		w,
-	// 		fmt.Sprintf("Error validating product: %s", err),
-	// 		http.StatusBadRequest,
-	// 	)
-	// 	return
-	// }
+	//validation
+	err = user.Validate()
+	if err != nil {
+		http.Error(
+			w,
+			fmt.Sprintf("Error validating user: %s", err),
+			http.StatusBadRequest,
+		)
+		return
+	}
 	user = user.Clean()
+	if err = user.SetPassword(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	err = data.Create(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

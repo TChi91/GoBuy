@@ -6,7 +6,9 @@ import (
 	"strings"
 
 	"github.com/TChi91/GoBuy/db"
+	"github.com/go-playground/validator"
 	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/bcrypt"
 )
 
 //User model
@@ -46,4 +48,20 @@ func (u *User) ToJSON(w io.Writer) error {
 	enc := json.NewEncoder(w)
 	err := enc.Encode(u)
 	return err
+}
+
+//SetPassword role is to hash user password
+func (u *User) SetPassword() error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	u.Password = string(hashedPassword)
+	return nil
+}
+
+//Validate user
+func (u *User) Validate() error {
+	validate := validator.New()
+	return validate.Struct(u)
 }
